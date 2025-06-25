@@ -134,8 +134,20 @@ elif mode == "Find fret from the note":
 
     # 顯示提示
     target = st.session_state.note_target
-    display_string = 6 - target["string"]
-    st.markdown(f"<h3>🎯 Find the note <code>{target['note']}</code> on String {7 - display_string}</h3>", unsafe_allow_html=True)
+    # display_string = 6 - target["string"]
+    target_string_display = target["string"] + 1
+
+    st.markdown(
+        f"""
+        <div style='font-size:24px; font-weight:500; padding: 8px 0;'>
+            🎯 Find the note 
+            <span style='color:#f0f0f0; background-color:#333; padding:3px 6px; border-radius:5px; font-family:monospace;'>{target['note']}</span>
+            on <b>String {target_string_display}</b>
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
+
 
 
     # 顯示 fretboard（只顯示目標弦）
@@ -166,3 +178,4 @@ if st.button("🔁 Next Question"):
     elif mode == "Find fret from the note":
         if "note_target" in st.session_state:
             del st.session_state.note_target
+    st.rerun()
