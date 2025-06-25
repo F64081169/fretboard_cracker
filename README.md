@@ -14,7 +14,7 @@ Memorizing the guitar fretboard is essential for improving improvisation, songwr
 
 ## 🚀 Features
 
-- Covers 6 strings and 24 frets (standard EADGBE tuning).
+- Covers 6 strings and 12 frets (standard EADGBE tuning).
 - Full chromatic notes (including sharps).
 - Practice by:
   - Finding the **note name** from a string + fret.
