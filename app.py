@@ -48,7 +48,7 @@ def draw_fretboard(quiz_string=None, quiz_fret=None, mode="guess_note"):
                 # Draw a red circle behind the label
                 circle = plt.Circle((fret, y), 0.35, facecolor='none', edgecolor='red', linewidth=1.5)
                 ax.add_patch(circle)
-                label = note if mode == "show_answer" else "?"
+                label = note if mode == "Find fret from the note" else "?"
                 ax.text(fret, y, label, ha='center', va='center', fontsize=18, color='red', fontweight='bold')
             # Uncomment this block if you want to show other notes:
             # else:
@@ -62,15 +62,46 @@ def draw_fretboard(quiz_string=None, quiz_fret=None, mode="guess_note"):
     ax.set_title("Guitar Fretboard Quiz", fontsize=18)
     return fig
 
-# Streamlit mode toggle
-mode = st.radio("Select mode:", ("Guess note from position (Graph)", "Show answer"))
+def draw_fretboard_interactive(target_string=None):
+    fretboard = generate_fretboard()
+    fig, ax = plt.subplots(figsize=(12, 4))
+    ax.set_xlim(-0.5, 11.5)
+    ax.set_ylim(-0.5, 5.5)
+    ax.set_xticks(range(12))
+    ax.set_xticklabels([f"{i}" for i in range(12)], fontsize=14)
+    ax.set_yticks(range(6))
+    ax.set_yticklabels([f"String {6 - i}" for i in range(6)], fontsize=14)
 
-# Random quiz location
-if "quiz_point" not in st.session_state or st.button("New Question"):
+    for i, string in enumerate(fretboard):
+        y = 5 - i
+        for fret, note in enumerate(string):
+            if target_string is not None and i != target_string:
+                continue  # only show the target string
+            if fret in [0, 3, 5, 7, 9] and random.random() < 0.3:
+                ax.text(fret, y, note, ha='center', va='center', fontsize=14, color='black')
+
+
+    for i in range(12):
+        ax.axvline(i, color='gray', linewidth=0.5)
+    for y in range(6):
+        if (5 - y) == target_string:
+            ax.hlines(y, -0.5, 11.5, color='red', linewidth=1.5)
+        else:
+            ax.hlines(y, -0.5, 11.5, color='black', linewidth=1)
+
+    ax.set_title("Guitar Fretboard (Target String Highlighted)", fontsize=18)
+    return fig
+
+
+# Streamlit mode toggle
+mode = st.radio("Select mode:", ("Guess note from position (Graph)", "Find fret from the note"))
+
+if "quiz_point" not in st.session_state:
     st.session_state.quiz_point = {
-        "string": random.randint(0, 5),  # 0 = string 6, ..., 5 = string 1
+        "string": random.randint(0, 5),
         "fret": random.randint(0, 11)
     }
+
 
 q = st.session_state.quiz_point
 
@@ -88,6 +119,50 @@ if mode == "Guess note from position (Graph)":
         else:
             st.error(f"❌ Incorrect. Correct answer is {correct_note}.")
 
-elif mode == "Show answer":
-    fig = draw_fretboard(quiz_string=q['string'], quiz_fret=q['fret'], mode="show_answer")
+elif mode == "Find fret from the note":
+    fretboard = generate_fretboard()
+
+    # 初始化 target question
+    if "note_target" not in st.session_state:
+        target_string = random.randint(0, 5)
+        target_fret = random.randint(0, 11)
+        note = fretboard[target_string][target_fret]
+        st.session_state.note_target = {
+            "string": target_string,
+            "note": note
+        }
+
+    # 顯示提示
+    target = st.session_state.note_target
+    display_string = 6 - target["string"]
+    st.markdown(f"<h3>🎯 Find the note <code>{target['note']}</code> on String {7 - display_string}</h3>", unsafe_allow_html=True)
+
+
+    # 顯示 fretboard（只顯示目標弦）
+    fig = draw_fretboard_interactive(target_string=target["string"])
     st.pyplot(fig)
+
+    # 顯示 12 個按鈕代表 0~11 fret
+    st.write("### Select the fret:")
+
+    cols = st.columns(12)
+    for fret_num in range(12):
+        if cols[fret_num].button(str(fret_num)):
+            selected_note = fretboard[target["string"]][fret_num]
+            if normalize_note(selected_note) == normalize_note(target["note"]):
+                st.success(f"✅ Correct! Fret {fret_num} is `{selected_note}`.")
+            else:
+                st.error(f"❌ Incorrect. Fret {fret_num} is `{selected_note}`, expected `{target['note']}`.")
+
+    # if st.button("Next Question"):
+    #     del st.session_state.note_target
+
+if st.button("🔁 Next Question"):
+    if mode == "Guess note from position (Graph)":
+        st.session_state.quiz_point = {
+            "string": random.randint(0, 5),
+            "fret": random.randint(0, 11)
+        }
+    elif mode == "Find fret from the note":
+        if "note_target" in st.session_state:
+            del st.session_state.note_target
