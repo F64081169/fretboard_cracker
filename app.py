@@ -157,14 +157,15 @@ elif mode == "Find fret from the note":
     # 顯示 12 個按鈕代表 0~11 fret
     st.write("### Select the fret:")
 
-    cols = st.columns(12)
-    for fret_num in range(12):
-        if cols[fret_num].button(str(fret_num)):
-            selected_note = fretboard[target["string"]][fret_num]
-            if normalize_note(selected_note) == normalize_note(target["note"]):
-                st.success(f"✅ Correct! Fret {fret_num} is `{selected_note}`.")
-            else:
-                st.error(f"❌ Incorrect. Fret {fret_num} is `{selected_note}`, expected `{target['note']}`.")
+    fret_options = list(range(12))
+    selected_fret = st.selectbox("🎚️ Select the fret (0–11):", fret_options)
+
+    if st.button("Submit Answer"):
+        selected_note = fretboard[target["string"]][selected_fret]
+        if normalize_note(selected_note) == normalize_note(target["note"]):
+            st.success(f"✅ Correct! Fret {selected_fret} is {selected_note}.")
+        else:
+            st.error(f"❌ Incorrect. Fret {selected_fret} is {selected_note}, expected {target['note']}.")
 
     # if st.button("Next Question"):
     #     del st.session_state.note_target
