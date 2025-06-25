@@ -10,6 +10,18 @@ st.title("🎸 Fretboard Cracker")
 NOTE_ORDER = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"]
 open_notes = ["E", "B", "G", "D", "A", "E"]  # From string 6 (bottom) to string 1 (top)
 
+# Enharmonic equivalents mapping
+ENHARMONIC_EQUIVS = {
+    "B#": "C", "E#": "F",
+    "CB": "B", "FB": "E",
+    "DB": "C#", "EB": "D#", "GB": "F#", "AB": "G#", "BB": "A#",
+    "C#": "C#", "D#": "D#", "F#": "F#", "G#": "G#", "A#": "A#",
+    "C": "C", "D": "D", "E": "E", "F": "F", "G": "G", "A": "A", "B": "B"
+}
+
+def normalize_note(note):
+    return ENHARMONIC_EQUIVS.get(note.upper().replace("♯", "#").replace("♭", "B"), note.upper())
+
 # Generate 12-fret fretboard
 def generate_fretboard():
     fretboard = []
@@ -32,13 +44,13 @@ def draw_fretboard(quiz_string=None, quiz_fret=None, mode="guess_note"):
     for i, string in enumerate(fretboard):  # i = 0 (String 6), ..., 5 (String 1)
         y = 5 - i  # Reverse vertical position: 0 → top, 5 → bottom
         for fret, note in enumerate(string):
-            color = 'black'
             if quiz_string == i and quiz_fret == fret:
                 # Draw a red circle behind the label
                 circle = plt.Circle((fret, y), 0.35, facecolor='none', edgecolor='red', linewidth=1.5)
                 ax.add_patch(circle)
                 label = note if mode == "show_answer" else "?"
                 ax.text(fret, y, label, ha='center', va='center', fontsize=18, color='red', fontweight='bold')
+            # Uncomment this block if you want to show other notes:
             # else:
             #     ax.text(fret, y, note, ha='center', va='center', fontsize=16, color='black', fontweight='bold')
 
@@ -69,7 +81,9 @@ if mode == "Guess note from position (Graph)":
     ans = st.text_input("What is the note at red dot? (e.g., C, D#, A#):")
     correct_note = generate_fretboard()[q['string']][q['fret']]
     if st.button("Submit Answer"):
-        if ans.strip().upper() == correct_note:
+        user_note = normalize_note(ans.strip())
+        correct_note_std = normalize_note(correct_note)
+        if user_note == correct_note_std:
             st.success("✅ Correct!")
         else:
             st.error(f"❌ Incorrect. Correct answer is {correct_note}.")
