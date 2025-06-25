@@ -23,3 +23,9 @@ Memorizing the guitar fretboard is essential for improving improvisation, songwr
 - Clean web-based UI via Streamlit.
 
 ---
+
+## Future Work
+
+- Timed Mode
+- Scoreboard
+- Online Mode & Rankings
